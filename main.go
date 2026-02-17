@@ -16,13 +16,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Global database variable
 var db *sql.DB
 
-// Session store (in-memory for simplicity - use Redis for production)
 var sessions = make(map[string]string)
 
-// Painting represents a painting in the gallery
 type Painting struct {
 	ID          int
 	Title       string
@@ -171,7 +168,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// logoutHandler handles user logout
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	sessionToken := getSessionCookie(r)
 	if sessionToken != "" {
