@@ -70,7 +70,7 @@ h1, h2, h3, .navbar h1 {
   text-decoration: none;
   font-weight: 500;
   font-size: 15px;
-  transition: all 0.3s ease;
+  transition: all 0.3s linear;
   position: relative;
 }
 
@@ -139,7 +139,7 @@ h1, h2, h3, .navbar h1 {
   }
 }
 
-/* BUTTONS */
+
 .btn {
   display: inline-block;
   padding: 10px 18px;
@@ -186,7 +186,7 @@ h1, h2, h3, .navbar h1 {
   transform: scale(1.03);
 }
 
-/* CARDS & FORMS */
+
 .card {
   background: white;
   border-radius: 10px;
@@ -228,7 +228,7 @@ input, textarea, select {
   border: 1px solid #cbd5e1;
   font-size: 14px;
   background-color: #fcfcfc;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease-in;
   font-family: 'Inter', sans-serif;
 }
 
@@ -249,7 +249,7 @@ textarea {
   margin-top: 10px;
 }
 
-/* PAINTINGS GRID */
+
 .paintings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -296,7 +296,7 @@ textarea {
   line-height: 1.5;
 }
 
-/* TABLES */
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -334,13 +334,13 @@ tr:hover {
   font-size: 12px;
 }
 
-/* HERO SECTION */
+
 .hero {
   background: linear-gradient(135deg, #1C0F13 0%, #6B4E71 100%); /* Plum to dusty purple */
   color: white;
   padding: 60px 0;
   text-align: center;
-  border-bottom: 3px solid #C9A959; /* Antique gold */
+  border-bottom: 3px solid #C9A959; 
 }
 
 .hero h2 {
