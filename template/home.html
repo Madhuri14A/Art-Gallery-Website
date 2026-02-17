@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Art Gallery</title>
+    <link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Art Gallery</h1>
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="/paintings">Gallery</a></li>
+                {{if .LoggedIn}}
+                <li><a href="/admin">Admin Panel</a></li>
+                <li><a href="/logout">Logout</a></li>
+                {{else}}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+                {{end}}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="container">
+            <h2>Welcome to Art Gallery</h2>
+            <p>Discover exquisite paintings from talented artists around the world</p>
+            <a href="/paintings" class="btn btn-primary">Explore Gallery</a>
+        </div>
+    </div>
+
+    <div class="container mt-3 mb-3">
+        <div class="card text-center">
+            <h2 style="color: #022D1E; margin-bottom: 15px;">Curated Collection</h2>
+            <p style="font-size: 1.1rem; color: #64748b; line-height: 1.8;">
+                Browse through our carefully selected collection of breathtaking artworks. 
+                Each piece tells a unique story, crafted by passionate artists who pour their 
+                soul into every brushstroke.
+            </p>
+           
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Art Gallery | Curated by uneven_flow</p>
+        </div>
+    </footer>
+</body>
+</html>

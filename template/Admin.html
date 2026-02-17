@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Art Gallery</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Art Gallery - Admin</h1>
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="/paintings">Gallery</a></li>
+                <li><a href="/admin">Admin Panel</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    {{if .Success}}
+    <div class="flash-messages">
+        <div class="flash flash-success">
+            <span>✓</span>
+            <span>{{.Success}}</span>
+        </div>
+    </div>
+    {{end}}
+
+    {{if .Error}}
+    <div class="flash-messages">
+        <div class="flash flash-error">
+            <span>⚠️</span>
+            <span>{{.Error}}</span>
+        </div>
+    </div>
+    {{end}}
+
+    <main style="min-height: 85vh; padding: 40px 0;">
+        <div class="container">
+            <!-- Add New Painting Form -->
+            <div class="card mb-3">
+                <h2 style="color: #022D1E; margin-bottom: 20px;">➕ Add New Painting</h2>
+                <form method="POST" action="/admin/add" enctype="multipart/form-data">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" name="title" placeholder="Painting title" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Artist</label>
+                            <input type="text" name="artist" placeholder="Artist name" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input type="number" name="price" placeholder="5000" required min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Brief description of the artwork" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Image (JPG, PNG, JPEG)</label>
+                        <input type="file" name="image" accept="image/jpeg,image/png,image/jpg" />
+                        <small style="color: #64748b; display: block; margin-top: 5px;">Optional - Leave empty for text-only painting</small>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Add Painting</button>
+                </form>
+            </div>
+
+            <!-- Existing Paintings -->
+            <div class="card">
+                <h2 style="color: #022D1E; margin-bottom: 20px;">🎨 All Paintings</h2>
+                {{if .Paintings}}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Price</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Paintings}}
+                        <tr>
+                            <td>{{.ID}}</td>
+                            <td>
+                                {{if .ImagePath}}
+                                <img src="{{.ImagePath}}" alt="{{.Title}}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px;">
+                                {{else}}
+                                <span style="color: #94a3b8; font-size: 12px;">No image</span>
+                                {{end}}
+                            </td>
+                            <td><strong>{{.Title}}</strong></td>
+                            <td>{{.Artist}}</td>
+                            <td>₹{{.Price}}</td>
+                            <td style="max-width: 300px;">{{.Description}}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <form method="POST" action="/admin/delete/{{.ID}}" style="display: inline;">
+                                        <button class="btn btn-danger" type="submit" onclick="return confirm('Delete this painting?')">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p style="text-align: center; color: #64748b; padding: 40px;">No paintings yet. Add your first one above!</p>
+                {{end}}
+            </div>
+
+            <!-- Users Table -->
+            <div class="card mt-3">
+                <h2 style="color: #022D1E; margin-bottom: 20px;"> Registered Users</h2>
+                {{if .Users}}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Users}}
+                        <tr>
+                            <td>{{.ID}}</td>
+                            <td><strong>{{.Name}}</strong></td>
+                            <td>{{.Email}}</td>
+                            <td>{{.CreatedAt}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <p style="text-align: center; color: #64748b; padding: 40px;">No users registered yet.</p>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Art Gallery Admin | uneven_flow</p>
+        </div>
+    </footer>
+
+    {{if .Success}}
+    <script>
+        setTimeout(() => {
+            const flash = document.querySelector('.flash-success');
+            if (flash) flash.style.display = 'none';
+        }, 5000);
+    </script>
+    {{end}}
+
+    {{if .Error}}
+    <script>
+        setTimeout(() => {
+            const flash = document.querySelector('.flash-error');
+            if (flash) flash.style.display = 'none';
+        }, 5000);
+    </script>
+    {{end}}
+</body>
+</html>

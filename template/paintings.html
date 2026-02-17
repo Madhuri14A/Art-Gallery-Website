@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Art Gallery</title>
+   <link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Art Gallery</h1>
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="/paintings">Gallery</a></li>
+                {{if .LoggedIn}}
+                <li><a href="/admin">Admin Panel</a></li>
+                <li><a href="/logout">Logout</a></li>
+                {{else}}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+                {{end}}
+            </ul>
+        </div>
+    </nav>
+
+    <main style="min-height: 85vh; padding-bottom: 40px;">
+        <div class="container mt-3">
+            <div class="text-center mb-3">
+                <h2 style="color: #022D1E; font-size: 2rem; margin-bottom: 10px;">Exquisite Collection</h2>
+                <p style="color: #64748b; font-size: 1.1rem;">Discover timeless masterpieces from renowned artists</p>
+            </div>
+
+            {{if .Paintings}}
+            <div class="paintings-grid">
+                {{range .Paintings}}
+                <div class="painting-card card">
+                    {{if .ImagePath}}
+                    <div style="width: 100%; height: 200px; margin-bottom: 15px; border-radius: 8px; overflow: hidden;">
+                        <img src="{{.ImagePath}}" alt="{{.Title}}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    {{end}}
+                    <h3>{{.Title}}</h3>
+                    <p class="artist">by <strong>{{.Artist}}</strong></p>
+                    {{if .Description}}
+                    <p class="description">{{.Description}}</p>
+                    {{end}}
+                    <p class="price">₹{{.Price}}</p>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="alert('Viewing artwork: {{.Title}}')">View Details</button>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="card text-center" style="padding: 60px 20px;">
+                <h3 style="color: #64748b; margin-bottom: 15px;">No Paintings Available</h3>
+                <p style="color: #94a3b8;">Check back soon for new additions to our collection!</p>
+            </div>
+            {{end}}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Art Gallery | Curated by uneven_flow</p>
+        </div>
+    </footer>
+</body>
+</html>

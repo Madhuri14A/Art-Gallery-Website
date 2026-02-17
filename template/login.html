@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Art Gallery</title>
+    <link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Art Gallery</h1>
+            <ul>
+                <li><a href="/home">Home</a></li>
+                <li><a href="/paintings">Gallery</a></li>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    {{if .Error}}
+    <div class="flash-messages">
+        <div class="flash flash-error">
+            <span>⚠️</span>
+            <span>{{.Error}}</span>
+        </div>
+    </div>
+    {{end}}
+
+    {{if .Success}}
+    <div class="flash-messages">
+        <div class="flash flash-success">
+            <span>✓</span>
+            <span>{{.Success}}</span>
+        </div>
+    </div>
+    {{end}}
+
+    <main style="min-height: 75vh; display: flex; align-items: center;">
+        <div class="container">
+            <div class="form-container card">
+                <h2 class="text-center mb-2">Login to Your Account</h2>
+                <form method="POST" action="/login">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="email@example.com" required value="{{.Email}}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="••••••••" required />
+                    </div>
+                    <button class="btn btn-primary" type="submit">Login</button>
+                </form>
+                <p class="mt-2 text-center" style="font-size: 0.9rem;">
+                    New to the gallery? <a href="/register" style="color: #000c08; font-weight: bold;">Register here</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Art Gallery | uneven_flow</p>
+        </div>
+    </footer>
+
+    {{if .Error}}
+    <script>
+        setTimeout(() => {
+            const flash = document.querySelector('.flash-error');
+            if (flash) flash.style.display = 'none';
+        }, 5000);
+    </script>
+    {{end}}
+</body>
+</html>
