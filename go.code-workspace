@@ -7,5 +7,7 @@
 			"path": "../../.Trash/loops 16-31-47-131"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "go"
+	}
 }
