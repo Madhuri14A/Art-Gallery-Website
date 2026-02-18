@@ -8,7 +8,7 @@
 
 body {
   font-family: 'Inter', "Segoe UI", Tahoma, sans-serif;
-  background-color:  #F5E6D3;
+  background: linear-gradient(135deg, #F5E6D3 0%, #fef9f0 50%, #F5E6D3 100%);
   color: #333;
   line-height: 1.6;
   min-height: 100vh;
@@ -93,7 +93,184 @@ h1, h2, h3, .navbar h1 {
   width: 100%;
 }
 
-/* FLASH MESSAGES */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+ background: radial-gradient(circle, rgba(201, 169, 89, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: movePattern 20s linear infinite;
+}
+
+@keyframes movePattern {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h2 {
+  animation: fadeInUp 0.8s ease;
+}
+
+.hero p {
+  animation: fadeInUp 1s ease 0.2s both;
+}
+
+.hero .btn {
+  animation: fadeInUp 1.2s ease 0.4s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.info-section {
+  display: flex;
+  gap: 40px;  
+  justify-content: space-between;
+  align-items: stretch;
+  margin: 50px 0;  
+  padding: 0 20px;  
+}
+
+.info-section::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(201, 169, 89, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  top: -100px;
+  left: -100px;
+  z-index: -1;
+}
+
+.info-section::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(107, 78, 113, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  bottom: -150px;
+  right: -150px;
+  z-index: -1;
+}
+
+
+.info-section .card {
+  border-radius: 16px;
+  padding: 35px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-section .card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #C9A959, #D4AF37);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.info-section .card:hover::after {
+  transform: scaleX(1);
+}
+
+.info-section .card:hover {
+  transform: translateY(-12px);
+  box-shadow: 
+    0 20px 40px rgba(201, 169, 89, 0.2),
+    0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+
+.info-section .card:nth-child(1) {
+  animation: slideInLeft 0.6s ease;
+}
+
+.info-section .card:nth-child(2) {
+  animation: slideInRight 0.6s ease;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+.info-section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1C0F13 0%, #6B4E71 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
+.card-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.info-section .card:hover .card-icon {
+  transform: scale(1.2) rotate(10deg);
+}
+
+@media (max-width: 768px) {
+  .info-section {
+    flex-direction: column;
+  }
+}
+
+
 .flash-messages {
   position: fixed;
   top: 80px;
