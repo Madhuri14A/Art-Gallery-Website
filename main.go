@@ -34,6 +34,7 @@ type User struct {
 	ID        int
 	Name      string
 	Email     string
+	IsAdmin   bool
 	CreatedAt string
 }
 
@@ -41,6 +42,7 @@ type User struct {
 type PageData struct {
 	LoggedIn  bool
 	UserName  string
+	IsAdmin   bool // NEW: tells templates if current user is admin
 	Error     string
 	Success   string
 	Email     string
@@ -78,13 +80,30 @@ func getUserFromSession(r *http.Request) (string, bool) {
 		return "", false
 	}
 
-	// Get user name from database
 	var name string
 	err := db.QueryRow("SELECT name FROM users WHERE email = ?", email).Scan(&name)
 	if err != nil {
 		return "", false
 	}
 	return name, true
+}
+
+// isAdminUser checks if the current session belongs to an admin
+func isAdminUser(r *http.Request) bool {
+	sessionToken := getSessionCookie(r)
+	if sessionToken == "" {
+		return false
+	}
+	email, exists := sessions[sessionToken]
+	if !exists {
+		return false
+	}
+	var isAdmin int
+	err := db.QueryRow("SELECT is_admin FROM users WHERE email = ?", email).Scan(&isAdmin)
+	if err != nil {
+		return false
+	}
+	return isAdmin == 1
 }
 
 // homeHandler handles the home page
@@ -94,6 +113,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		LoggedIn: loggedIn,
 		UserName: userName,
+		IsAdmin:  isAdminUser(r), // pass admin status to template
 	}
 
 	tmpl, err := template.ParseFiles("template/home.html")
@@ -107,7 +127,6 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 // loginHandler handles user login
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		// Check if already logged in
 		if _, loggedIn := getUserFromSession(r); loggedIn {
 			http.Redirect(w, r, "/paintings", http.StatusSeeOther)
 			return
@@ -122,7 +141,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		var dbPassword string
 		var name string
 
-		// Look for the user in the database
 		err := db.QueryRow("SELECT name, password FROM users WHERE email = ?", email).Scan(&name, &dbPassword)
 		if err != nil {
 			tmpl, _ := template.ParseFiles("template/login.html")
@@ -133,7 +151,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Verify password
 		err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 		if err != nil {
 			tmpl, _ := template.ParseFiles("template/login.html")
@@ -144,7 +161,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Create session
 		sessionToken, err := generateSessionToken()
 		if err != nil {
 			http.Error(w, "Could not create session", http.StatusInternalServerError)
@@ -153,12 +169,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		sessions[sessionToken] = email
 
-		// Set cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
 			Value:    sessionToken,
 			Path:     "/",
-			MaxAge:   3600 * 24, // 24 hours
+			MaxAge:   3600 * 24,
 			HttpOnly: true,
 			SameSite: http.SameSiteStrictMode,
 		})
@@ -168,13 +183,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// logoutHandler logs the user out
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	sessionToken := getSessionCookie(r)
 	if sessionToken != "" {
 		delete(sessions, sessionToken)
 	}
 
-	// Clear cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    "",
@@ -190,7 +205,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 // registerHandler handles user registration
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		// Check if already logged in
 		if _, loggedIn := getUserFromSession(r); loggedIn {
 			http.Redirect(w, r, "/paintings", http.StatusSeeOther)
 			return
@@ -207,7 +221,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		// Validate password length
 		if len(password) < 6 {
 			tmpl, _ := template.ParseFiles("template/register.html")
 			tmpl.Execute(w, PageData{
@@ -218,14 +231,12 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Hash password
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Could not process password", http.StatusInternalServerError)
 			return
 		}
 
-		// Insert into the database
 		_, err = db.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", name, email, string(hashedPassword))
 		if err != nil {
 			tmpl, _ := template.ParseFiles("template/register.html")
@@ -237,7 +248,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Create session automatically after registration
 		sessionToken, err := generateSessionToken()
 		if err != nil {
 			http.Error(w, "Could not create session", http.StatusInternalServerError)
@@ -264,7 +274,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 func paintingsHandler(w http.ResponseWriter, r *http.Request) {
 	userName, loggedIn := getUserFromSession(r)
 
-	// Fetch paintings from database
 	rows, err := db.Query("SELECT id, title, artist, price, description, COALESCE(image_path, '') FROM paintings ORDER BY id")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -286,6 +295,7 @@ func paintingsHandler(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		LoggedIn:  loggedIn,
 		UserName:  userName,
+		IsAdmin:   isAdminUser(r), // pass admin status to template
 		Paintings: paintings,
 	}
 
@@ -305,12 +315,13 @@ func initDatabase() error {
 		return err
 	}
 
-	// Create users table
+	// Create users table with is_admin column
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		email TEXT UNIQUE NOT NULL,
 		password TEXT NOT NULL,
+		is_admin INTEGER DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
 	if err != nil {
@@ -362,23 +373,21 @@ func sessionCleanup() {
 	ticker := time.NewTicker(1 * time.Hour)
 	go func() {
 		for range ticker.C {
-			// In a real app, you'd track session expiration times
-			// For now, this is a placeholder
 			fmt.Println("Session cleanup running...")
 		}
 	}()
 }
 
-// adminHandler displays the admin panel
+// adminHandler displays the admin panel — ADMIN ONLY
 func adminHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if user is logged in
-	userName, loggedIn := getUserFromSession(r)
-	if !loggedIn {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	// SECURITY: reject anyone who is not an admin
+	if !isAdminUser(r) {
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 	}
 
-	// Fetch all paintings
+	userName, _ := getUserFromSession(r)
+
 	rows, err := db.Query("SELECT id, title, artist, price, description, COALESCE(image_path, '') FROM paintings ORDER BY id")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -393,7 +402,6 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		paintings = append(paintings, p)
 	}
 
-	// Fetch all users
 	userRows, err := db.Query("SELECT id, name, email, created_at FROM users ORDER BY id")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -409,13 +417,13 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := PageData{
-		LoggedIn:  loggedIn,
+		LoggedIn:  true,
+		IsAdmin:   true,
 		UserName:  userName,
 		Paintings: paintings,
 		Users:     users,
 	}
 
-	// Check for success/error messages from query params
 	if r.URL.Query().Get("success") == "added" {
 		data.Success = "Painting added successfully!"
 	} else if r.URL.Query().Get("success") == "deleted" {
@@ -436,17 +444,16 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
-// adminAddHandler adds a new painting
+// adminAddHandler adds a new painting — ADMIN ONLY
 func adminAddHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if user is logged in
-	if _, loggedIn := getUserFromSession(r); !loggedIn {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	// SECURITY: reject anyone who is not an admin
+	if !isAdminUser(r) {
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 	}
 
 	if r.Method == "POST" {
-		// Parse multipart form (for file upload)
-		err := r.ParseMultipartForm(10 << 20) // 10 MB max
+		err := r.ParseMultipartForm(10 << 20)
 		if err != nil {
 			log.Println("Error parsing form:", err)
 			http.Redirect(w, r, "/admin?error=failed", http.StatusSeeOther)
@@ -460,13 +467,10 @@ func adminAddHandler(w http.ResponseWriter, r *http.Request) {
 
 		var imagePath string
 
-		// Handle file upload
 		file, handler, err := r.FormFile("image")
 		if err == nil {
-			// File was uploaded
 			defer file.Close()
 
-			// Create uploads directory if it doesn't exist
 			err = os.MkdirAll("./static/uploads", os.ModePerm)
 			if err != nil {
 				log.Println("Error creating uploads directory:", err)
@@ -474,12 +478,10 @@ func adminAddHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Generate unique filename
 			timestamp := time.Now().Unix()
 			filename := fmt.Sprintf("%d_%s", timestamp, handler.Filename)
 			imagePath = "/static/uploads/" + filename
 
-			// Save file
 			dst, err := os.Create("./static/uploads/" + filename)
 			if err != nil {
 				log.Println("Error creating file:", err)
@@ -500,7 +502,6 @@ func adminAddHandler(w http.ResponseWriter, r *http.Request) {
 
 		_, err = db.Exec("INSERT INTO paintings (title, artist, price, description, image_path) VALUES (?, ?, ?, ?, ?)",
 			title, artist, price, description, imagePath)
-
 		if err != nil {
 			log.Println("Error adding painting:", err)
 			http.Redirect(w, r, "/admin?error=failed", http.StatusSeeOther)
@@ -512,16 +513,15 @@ func adminAddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// adminDeleteHandler deletes a painting
+// adminDeleteHandler deletes a painting — ADMIN ONLY
 func adminDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if user is logged in
-	if _, loggedIn := getUserFromSession(r); !loggedIn {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	// SECURITY: reject anyone who is not an admin
+	if !isAdminUser(r) {
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
 	}
 
 	if r.Method == "POST" {
-		// Get painting ID from URL path
 		path := r.URL.Path
 		id := path[len("/admin/delete/"):]
 
@@ -538,16 +538,13 @@ func adminDeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Initialize database
 	if err := initDatabase(); err != nil {
 		log.Fatal("Database initialization failed:", err)
 	}
 	defer db.Close()
 
-	// Start session cleanup
 	sessionCleanup()
 
-	// Routes
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 	})
@@ -557,15 +554,13 @@ func main() {
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/logout", logoutHandler)
 
-	// Admin routes
+	// Admin routes — protected by isAdminUser() inside each handler
 	http.HandleFunc("/admin", adminHandler)
 	http.HandleFunc("/admin/add", adminAddHandler)
 	http.HandleFunc("/admin/delete/", adminDeleteHandler)
 
-	// Static files
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	fmt.Println("Server running at: http://localhost:8080")
-
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -1,68 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery - Art Gallery</title>
-   <link rel="stylesheet" href="/static/style.css?v=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery - Art Gallery</title>
+<link rel="stylesheet" href="/static/style.css?v=1">
+<style>
+.gallery-header {
+  text-align: center;
+  padding: 50px 0 10px;
+}
+.gallery-header h2 {
+  font-size: 2.4rem;
+  background: linear-gradient(135deg, #1C0F13 0%, #6B4E71 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+.gallery-header p {
+  color: #64748b;
+  font-size: 1.05rem;
+}
+.paintings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+  margin: 35px 0 60px;
+}
+.painting-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #F5E6D3;
+  box-shadow: 0 4px 16px rgba(28, 15, 19, 0.07);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.painting-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 36px rgba(201, 169, 89, 0.22);
+  border-color: #C9A959;
+}
+.card-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  background: #f1e8df;
+}
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+.painting-card:hover .card-image-wrap img {
+  transform: scale(1.07);
+}
+.card-image-wrap .img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 15, 19, 0.45);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.painting-card:hover .img-overlay {
+  opacity: 1;
+}
+.img-overlay span {
+  color: white;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.6);
+  padding: 8px 18px;
+  border-radius: 20px;
+}
+.no-image-placeholder {
+  width: 100%;
+  height: 240px;
+  background: linear-gradient(135deg, #F5E6D3, #fef9f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+.card-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.card-body h3 {
+  color: #1C0F13;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+.card-body .artist {
+  font-size: 13px;
+  color: #9a8c98;
+  margin-bottom: 12px;
+}
+.card-body .price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1C0F13;
+  margin-bottom: 6px;
+}
+.guest-hint {
+  font-size: 11.5px;
+  color: #b0a8a8;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+.card-actions .btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px 8px;
+  font-size: 13px;
+}
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #C9A959;
+  color: #C9A959;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.btn-outline:hover {
+  background: #C9A959;
+  color: white;
+}
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 8, 10, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.active {
+  display: flex;
+}
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.modal-image-placeholder {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, #F5E6D3, #fef9f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+}
+.modal-content {
+  padding: 28px 30px 30px;
+}
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: #1C0F13;
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+.modal-close:hover { color: #1C0F13; }
+.modal-artist {
+  font-size: 14px;
+  color: #9a8c98;
+  margin-bottom: 14px;
+}
+.modal-description {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  border-left: 3px solid #C9A959;
+  padding-left: 14px;
+}
+.modal-price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1C0F13;
+  margin-bottom: 22px;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+.modal-actions .btn {
+  flex: 1;
+  text-align: center;
+  padding: 13px;
+}
+.login-modal-box {
+  background: white;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  padding: 40px 36px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-top: 4px solid #C9A959;
+}
+.login-modal-box .lock-icon {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+}
+.login-modal-box h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: #1C0F13;
+  margin-bottom: 10px;
+}
+.login-modal-box p {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+.login-modal-box .painting-name-hint {
+  font-style: italic;
+  color: #C9A959;
+  font-weight: 600;
+}
+.login-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+.login-modal-actions .btn {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+}
+.login-modal-close-row {
+  margin-top: 16px;
+}
+.login-modal-close-row button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.coming-soon-note {
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 10px;
+}
+</style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <h1>Art Gallery</h1>
-            <ul>
-                <li><a href="/home">Home</a></li>
-                <li><a href="/paintings">Gallery</a></li>
-                {{if .LoggedIn}}
-                <li><a href="/admin">Admin Panel</a></li>
-                <li><a href="/logout">Logout</a></li>
-                {{else}}
-                <li><a href="/login">Login</a></li>
-                <li><a href="/register">Register</a></li>
-                {{end}}
-            </ul>
-        </div>
-    </nav>
 
-    <main style="min-height: 85vh; padding-bottom: 40px;">
-        <div class="container mt-3">
-            <div class="text-center mb-3">
-                <h2 style="color: #022D1E; font-size: 2rem; margin-bottom: 10px;">Exquisite Collection</h2>
-                <p style="color: #64748b; font-size: 1.1rem;">Discover timeless masterpieces from renowned artists</p>
-            </div>
+<nav class="navbar">
+  <div class="container">
+    <h1>Madhuri Amam</h1>
+    <ul>
+      <li><a href="/home">Home</a></li>
+      <li><a href="/paintings">Gallery</a></li>
+      {{if .IsAdmin}}
+      <li><a href="/admin">Admin Panel</a></li>
+      {{end}}
+      {{if .LoggedIn}}
+      <li><a href="/logout">Logout ({{.UserName}})</a></li>
+      {{else}}
+      <li><a href="/login">Login</a></li>
+      <li><a href="/register">Register</a></li>
+      {{end}}
+    </ul>
+  </div>
+</nav>
 
-            {{if .Paintings}}
-            <div class="paintings-grid">
-                {{range .Paintings}}
-                <div class="painting-card card">
-                    {{if .ImagePath}}
-                    <div style="width: 100%; height: 200px; margin-bottom: 15px; border-radius: 8px; overflow: hidden;">
-                        <img src="{{.ImagePath}}" alt="{{.Title}}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    {{end}}
-                    <h3>{{.Title}}</h3>
-                    <p class="artist">by <strong>{{.Artist}}</strong></p>
-                    {{if .Description}}
-                    <p class="description">{{.Description}}</p>
-                    {{end}}
-                    <p class="price">₹{{.Price}}</p>
-                    <button class="btn btn-primary" style="width: 100%;" onclick="alert('Viewing artwork: {{.Title}}')">View Details</button>
-                </div>
-                {{end}}
-            </div>
-            {{else}}
-            <div class="card text-center" style="padding: 60px 20px;">
-                <h3 style="color: #64748b; margin-bottom: 15px;">No Paintings Available</h3>
-                <p style="color: #94a3b8;">Check back soon for new additions to our collection!</p>
-            </div>
-            {{end}}
-        </div>
-    </main>
+<main style="min-height: 85vh;">
+  <div class="container">
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 Art Gallery | Curated by uneven_flow</p>
+    <div class="gallery-header">
+      <h2>Exquisite Collection</h2>
+      <p>Discover timeless masterpieces — each piece tells its own story</p>
+    </div>
+
+    {{if .Paintings}}
+    <div class="paintings-grid">
+      {{range .Paintings}}
+      <div class="painting-card"
+           data-title="{{.Title}}"
+           data-artist="{{.Artist}}"
+           data-price="{{.Price}}"
+           data-description="{{.Description}}"
+           data-image="{{.ImagePath}}">
+
+        {{if .ImagePath}}
+        <div class="card-image-wrap">
+          <img src="{{.ImagePath}}" alt="{{.Title}}">
+          <div class="img-overlay"><span>View Details</span></div>
         </div>
-    </footer>
+        {{else}}
+        <div class="no-image-placeholder">🎨</div>
+        {{end}}
+
+        <div class="card-body">
+          <h3>{{.Title}}</h3>
+          <p class="artist">by <strong>{{.Artist}}</strong></p>
+          <p class="price">₹{{.Price}}</p>
+          <div class="card-actions">
+            <button class="btn btn-outline view-btn">View Details</button>
+            <button class="btn btn-primary buy-btn">Buy Now</button>
+          </div>
+        </div>
+
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="card text-center" style="padding: 60px 20px; margin: 40px 0;">
+      <div style="font-size: 3rem; margin-bottom: 16px;">🖼️</div>
+      <h3 style="color: #64748b; margin-bottom: 10px;">No Paintings Yet</h3>
+      <p style="color: #94a3b8;">Check back soon for new additions to the collection!</p>
+    </div>
+    {{end}}
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2026 Art Gallery | Curated by uneven_flow</p>
+  </div>
+</footer>
+
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal-box">
+    <div id="modalImageWrap"></div>
+    <div class="modal-content">
+      <div class="modal-top">
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <button class="modal-close" id="closeDetailModal">&#10005;</button>
+      </div>
+      <p class="modal-artist" id="modalArtist"></p>
+      <p class="modal-description" id="modalDescription"></p>
+      <p class="modal-price" id="modalPrice"></p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="closeModalBtn">Close</button>
+        <button class="btn btn-primary" id="modalBuyBtn">Buy Now</button>
+      </div>
+      <p class="coming-soon-note" id="buySoonNote"></p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="loginModal">
+  <div class="login-modal-box">
+    <div class="lock-icon">&#128274;</div>
+    <h3>Sign in to Continue</h3>
+    <p>
+      To view details or purchase
+      <span class="painting-name-hint" id="loginModalPaintingName"></span>
+      you need to be signed in.
+    </p>
+    <div class="login-modal-actions">
+      <a href="/login" class="btn btn-primary">Login</a>
+      <a href="/register" class="btn btn-outline">Register</a>
+    </div>
+    <div class="login-modal-close-row">
+      <button id="continueBrowsingBtn">Continue browsing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var isLoggedIn = false;
+  {{if .LoggedIn}}
+  isLoggedIn = true;
+  {{end}}
+
+  function closeAllModals() {
+    document.getElementById('detailModal').classList.remove('active');
+    document.getElementById('loginModal').classList.remove('active');
+    document.getElementById('buySoonNote').textContent = '';
+  }
+
+  function openLoginModal(paintingName) {
+    document.getElementById('loginModalPaintingName').textContent = '"' + paintingName + '"';
+    document.getElementById('loginModal').classList.add('active');
+  }
+
+  function openDetailModal(title, artist, price, description, image) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalArtist').textContent = 'by ' + artist;
+    document.getElementById('modalDescription').textContent = description || 'No description available.';
+    document.getElementById('modalPrice').textContent = 'Rs.' + price;
+
+    var imageWrap = document.getElementById('modalImageWrap');
+    if (image && image !== '') {
+      imageWrap.innerHTML = '<img src="' + image + '" alt="' + title + '" class="modal-image">';
+    } else {
+      imageWrap.innerHTML = '<div class="modal-image-placeholder">&#127912;</div>';
+    }
+
+    document.getElementById('detailModal').classList.add('active');
+  }
+
+  document.getElementById('closeDetailModal').onclick = closeAllModals;
+  document.getElementById('closeModalBtn').onclick = closeAllModals;
+  document.getElementById('continueBrowsingBtn').onclick = closeAllModals;
+
+  document.getElementById('modalBuyBtn').onclick = function() {
+    document.getElementById('buySoonNote').textContent = 'Online purchasing coming soon! Contact us to buy this piece.';
+  };
+
+  document.getElementById('detailModal').onclick = function(e) {
+    if (e.target === this) closeAllModals();
+  };
+
+  document.getElementById('loginModal').onclick = function(e) {
+    if (e.target === this) closeAllModals();
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAllModals();
+  });
+
+  var allCards = document.querySelectorAll('.painting-card');
+
+  allCards.forEach(function(card) {
+    var viewBtn = card.querySelector('.view-btn');
+    var buyBtn  = card.querySelector('.buy-btn');
+
+    var title       = card.getAttribute('data-title');
+    var artist      = card.getAttribute('data-artist');
+    var price       = card.getAttribute('data-price');
+    var description = card.getAttribute('data-description');
+    var image       = card.getAttribute('data-image');
+
+    viewBtn.onclick = function() {
+      if (isLoggedIn) {
+        openDetailModal(title, artist, price, description, image);
+      } else {
+        openLoginModal(title);
+      }
+    };
+
+    buyBtn.onclick = function() {
+      if (isLoggedIn) {
+        openDetailModal(title, artist, price, description, image);
+      } else {
+        openLoginModal(title);
+      }
+    };
+  });
+</script>
+
 </body>
 </html>
