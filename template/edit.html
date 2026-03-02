@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Painting - Admin</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <h1>Art Gallery - Admin</h1>
+    <ul>
+      <li><a href="/home">Home</a></li>
+      <li><a href="/paintings">Gallery</a></li>
+      <li><a href="/admin">Admin Panel</a></li>
+      <li><a href="/logout">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+{{if .Error}}
+<div class="flash-messages">
+  <div class="flash flash-error">
+    <span>⚠️</span>
+    <span>{{.Error}}</span>
+  </div>
+</div>
+{{end}}
+
+<main style="min-height: 85vh; padding: 40px 0;">
+  <div class="container">
+    <div class="card" style="max-width: 700px; margin: auto; border-top: 5px solid #C9A959;">
+
+      <h2 style="color: #022D1E; margin-bottom: 8px;">✏️ Edit Painting</h2>
+      <p style="color: #64748b; font-size: 14px; margin-bottom: 24px;">
+        Editing: <strong>{{.Painting.Title}}</strong> (ID: {{.Painting.ID}})
+      </p>
+
+      <form method="POST" action="/admin/edit/{{.Painting.ID}}" enctype="multipart/form-data">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value="{{.Painting.Title}}" required />
+          </div>
+          <div class="form-group">
+            <label>Artist</label>
+            <input type="text" name="artist" value="{{.Painting.Artist}}" required />
+          </div>
+          <div class="form-group">
+            <label>Year / Date</label>
+            <input type="text" name="date_year" value="{{.Painting.Year}}" placeholder="e.g. 2023" />
+          </div>
+          <div class="form-group">
+            <label>Medium</label>
+            <input type="text" name="medium" value="{{.Painting.Medium}}" placeholder="e.g. Acrylic on canvas" />
+          </div>
+          <div class="form-group">
+            <label>Dimensions</label>
+            <input type="text" name="dimensions" value="{{.Painting.Dimensions}}" placeholder="e.g. 24 x 36 inches" />
+          </div>
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" name="price" value="{{.Painting.Price}}" required min="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="4">{{.Painting.Description}}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Current Image</label>
+          {{if .Painting.ImagePath}}
+          <div style="margin-bottom: 10px;">
+            <img src="{{.Painting.ImagePath}}" alt="{{.Painting.Title}}"
+                 style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #F5E6D3;">
+          </div>
+          {{else}}
+          <p style="color: #94a3b8; font-size: 13px; margin-bottom: 10px;">No image uploaded</p>
+          {{end}}
+          <label>Replace Image (optional)</label>
+          <input type="file" name="image" accept="image/jpeg,image/png,image/jpg" />
+          <small style="color: #64748b; display: block; margin-top: 5px;">
+            Leave empty to keep the current image
+          </small>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <button class="btn btn-primary" type="submit" style="flex: 1; padding: 14px;">
+            Save Changes
+          </button>
+          <a href="/admin" class="btn btn-secondary" style="flex: 1; padding: 14px; text-align: center;">
+            Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2026 Art Gallery Admin | uneven_flow</p>
+  </div>
+</footer>
+
+{{if .Error}}
+<script>
+  setTimeout(function() {
+    var flash = document.querySelector('.flash-error');
+    if (flash) flash.style.display = 'none';
+  }, 5000);
+</script>
+{{end}}
+
+</body>
+</html>
