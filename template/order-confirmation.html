@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Art Gallery</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Madhuri Amam</h1>
+           <ul>
+    <li><a href="/home">Home</a></li>
+    <li><a href="/paintings">Gallery</a></li>
+    
+    {{if .LoggedIn}}
+        <li><a href="/cart">Cart</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/admin">Admin Panel</a></li>
+        <li><a href="/logout">Logout</a></li>
+    {{else}}
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Register</a></li>
+    {{end}}
+</ul>
+        </div>
+    </nav>
+
+    <div class="container mt-3 mb-3">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="card" style="padding: 40px; text-align: center; background: #f0fdf4; border: 2px solid #22c55e;">
+                <h1 style="color: #22c55e; margin-bottom: 20px;">✓ Order Confirmed!</h1>
+                <p style="font-size: 16px; margin-bottom: 30px;">Thank you for your purchase. Your order has been successfully placed.</p>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: left;">
+                    <h3 style="margin-bottom: 15px;">Order Details</h3>
+                    <p><strong>Order ID:</strong> {{.Order.OrderID}}</p>
+                    <p><strong>Order Date:</strong> {{.Order.CreatedAt}}</p>
+                    <p><strong>Status:</strong> <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px;">{{.Order.Status}}</span></p>
+                    <p><strong>Total Amount:</strong> <span style="font-size: 20px; color: #059669;">₹{{.Order.TotalAmount}}</span></p>
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: left;">
+                    <h3 style="margin-bottom: 15px;">Items Ordered</h3>
+                    {{range .CartItems}}
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+                        <div>
+                            <p><strong>{{.Painting.Title}}</strong></p>
+                            <small>by {{.Painting.Artist}}</small>
+                            <p>Qty: {{.Quantity}}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p>₹{{mul .Painting.Price .Quantity}}</p>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+
+                <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 30px;">
+                    <p style="margin: 0; color: #0c4a6e;">
+                        <strong>📦 Expected Delivery:</strong> Your artwork will be carefully packaged and shipped within 5-7 business days.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <a href="/my-orders" class="btn btn-primary" style="display: block; text-align: center; padding: 12px;">View All Orders</a>
+                    <a href="/paintings" class="btn btn-secondary" style="display: block; text-align: center; padding: 12px;">Continue Shopping</a>
+                </div>
+
+                <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                    An order confirmation email has been sent to your email address.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Art Gallery | Curated by uneven_flow</p>
+        </div>
+    </footer>
+</body>
+</html>
