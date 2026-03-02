@@ -931,6 +931,16 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("success") == "true" {
 			data.Success = "Profile updated successfully!"
 		}
+		
+		// Handle error messages
+		if errorParam := r.URL.Query().Get("error"); errorParam != "" {
+			data.Error = errorParam
+		}
+		
+		// Handle password-specific success message
+		if r.URL.Query().Get("success") == "password_changed" {
+			data.Success = "password_changed"
+		}
 
 		if err := tmpl.ExecuteTemplate(w, "profile.html", data); err != nil {
 			log.Println("template exec:", err)
@@ -955,6 +965,73 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/profile?success=true", http.StatusSeeOther)
 }
+
+func changePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	sessionToken := getSessionCookie(r)
+	email, exists := sessions[sessionToken]
+	if sessionToken == "" || !exists {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == "GET" {
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		return
+	}
+
+	// POST: Handle password change
+	oldPassword := r.FormValue("old_password")
+	newPassword := r.FormValue("new_password")
+	confirmPassword := r.FormValue("confirm_password")
+
+	// Validation: New passwords must match
+	if newPassword != confirmPassword {
+		http.Redirect(w, r, "/profile?error=passwords_dont_match", http.StatusSeeOther)
+		return
+	}
+
+	// Validation: New password must not be same as old
+	if oldPassword == newPassword {
+		http.Redirect(w, r, "/profile?error=same_password", http.StatusSeeOther)
+		return
+	}
+
+	// Fetch current password hash from DB
+	var hashedPassword string
+	err := db.QueryRow("SELECT password FROM users WHERE email = ?", email).Scan(&hashedPassword)
+	if err != nil {
+		log.Println("Password fetch error:", err)
+		http.Redirect(w, r, "/profile?error=user_not_found", http.StatusSeeOther)
+		return
+	}
+
+	// Verify old password
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(oldPassword))
+	if err != nil {
+		// Old password is incorrect
+		http.Redirect(w, r, "/profile?error=old_password_incorrect", http.StatusSeeOther)
+		return
+	}
+
+	// Hash new password
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println("Password hashing error:", err)
+		http.Redirect(w, r, "/profile?error=failed", http.StatusSeeOther)
+		return
+	}
+
+	// Update password in database
+	_, err = db.Exec("UPDATE users SET password = ? WHERE email = ?", string(hashedNewPassword), email)
+	if err != nil {
+		log.Println("Password update error:", err)
+		http.Redirect(w, r, "/profile?error=update_failed", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/profile?success=password_changed", http.StatusSeeOther)
+}
+
 func main() {
 	if err := initDatabase(); err != nil {
 		log.Fatal("Database initialization failed:", err)
@@ -1013,6 +1090,7 @@ func main() {
 	http.HandleFunc("/my-orders", myOrdersHandler)
 
 	http.HandleFunc("/profile", profileHandler)
+	http.HandleFunc("/change-password", changePasswordHandler)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
