@@ -931,12 +931,12 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("success") == "true" {
 			data.Success = "Profile updated successfully!"
 		}
-		
+
 		// Handle error messages
 		if errorParam := r.URL.Query().Get("error"); errorParam != "" {
 			data.Error = errorParam
 		}
-		
+
 		// Handle password-specific success message
 		if r.URL.Query().Get("success") == "password_changed" {
 			data.Success = "password_changed"
