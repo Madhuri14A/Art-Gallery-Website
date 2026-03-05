@@ -37,15 +37,15 @@
         </div>
     </div>
     
-    <!-- Search & Filter Bar -->
+       
     <div class="container mt-3" style="margin-bottom: 30px;">
         <form method="GET" action="/paintings" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
             <input type="text" name="search" placeholder="Search by title or artist..." 
                    value="{{.Search}}"
                    style="flex: 1; min-width: 250px; padding: 12px; border: 1px solid #e8d5bf; border-radius: 6px; font-size: 14px;">
             
-            <select name="sort" style="padding: 12px; border: 1px solid #e8d5bf; border-radius: 6px; font-size: 14px; background: white;">
-                <option value="">Sort By...</option>
+            <select name="sort" style="padding: 12px; border: 1px solid #e8d5bf; border-radius: 6px; font-size: 14px; background: rgb(242, 231, 231);">
+                <option value="">Filter</option>
                 <option value="price_low" {{if eq .Sort "price_low"}}selected{{end}}>Price: Low to High</option>
                 <option value="price_high" {{if eq .Sort "price_high"}}selected{{end}}>Price: High to Low</option>
                 <option value="title" {{if eq .Sort "title"}}selected{{end}}>Title: A to Z</option>
@@ -135,6 +135,12 @@
             <p id="modalArtist" style="color: #64748b; font-size: 1.1rem; margin-bottom: 5px;"></p>
             <p id="modalYear" style="color: #64748b; font-size: 0.95rem; margin-bottom: 15px;"></p>
             <p id="modalPrice" style="font-size: 1.8rem; font-weight: bold; color: #C9A959; margin: 15px 0;"></p>
+            
+            <div style="background: #f8f8f8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p id="modalMedium" style="color: #64748b; font-size: 0.95rem; margin: 5px 0;"><strong>Medium:</strong> <span id="mediumValue"></span></p>
+                <p id="modalDimensions" style="color: #64748b; font-size: 0.95rem; margin: 5px 0;"><strong>Dimensions:</strong> <span id="dimensionsValue"></span></p>
+            </div>
+            
             <p id="modalDescription" style="line-height: 1.8; color: #333; margin-bottom: 25px;"></p>
             
             
@@ -146,7 +152,7 @@
                     Add to Cart
                 </button>
                 <button class="btn btn-primary" 
-                        onclick="alert('Coming soon! Please contact us to purchase.\n\nEmail: contact@artgallery.com\nPhone: +91 98765 43210')" 
+                        id="modalBuyNow"
                         style="flex: 1;">
                     Buy Now
                 </button>
@@ -171,6 +177,8 @@
             title: "{{.Title}}",
             artist: "{{.Artist}}",
             year: "{{.Year}}",
+            medium: "{{.Medium}}",
+            dimensions: "{{.Dimensions}}",
             price: {{.Price}},
             description: "{{.Description}}",
             images: [
@@ -195,6 +203,8 @@
         document.getElementById('modalArtist').textContent = 'by ' + currentPainting.artist;
         document.getElementById('modalYear').textContent = currentPainting.year ? currentPainting.year : '';
         document.getElementById('modalPrice').textContent = '₹' + currentPainting.price.toLocaleString('en-IN');
+        document.getElementById('mediumValue').textContent = currentPainting.medium || 'Not specified';
+        document.getElementById('dimensionsValue').textContent = currentPainting.dimensions || 'Not specified';
         document.getElementById('modalDescription').textContent = currentPainting.description;
         
         // Setup image slider
@@ -213,6 +223,30 @@
             window.location.href = '/login';
         };
         {{end}}
+        
+        // Setup Buy Now button - adds to cart then redirects to checkout
+       const buyNowBtn = document.getElementById('modalBuyNow');
+
+{{if .LoggedIn}}
+buyNowBtn.style.display = "block";   // show button
+
+buyNowBtn.onclick = () => {
+    fetch('/add-to-cart/' + paintingId)
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/checkout';
+            }
+        })
+        .catch(() => {
+            window.location.href = '/checkout';
+        });
+};
+
+buyNowBtn.textContent = "Buy Now";
+
+{{else}}
+buyNowBtn.style.display = "none";   // hide button
+{{end}}
         
         // Show modal
         document.getElementById('paintingModal').style.display = 'block';
@@ -291,5 +325,6 @@
         }
     });
     </script>
+    
 </body>
 </html>
